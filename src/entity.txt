@@ -1,0 +1,112 @@
+// 🎯 Project: Student Management Backend with NestJS + Entities + Relations
+// Modules: StudentModule, CourseModule, DetailModule
+
+// -------------------- FILE STRUCTURE --------------------
+// 📁 src/
+// ├── main.ts
+// ├── app.module.ts
+// ├── student/
+// │   ├── student.module.ts
+// │   ├── student.controller.ts
+// │   ├── student.service.ts
+// │   ├── student.entity.ts
+// │   ├── dto/
+// │   │   └── create-student.dto.ts
+// │   ├── interfaces/
+// │   │   └── student.interface.ts
+// ├── course/
+// │   ├── course.module.ts
+// │   ├── course.controller.ts
+// │   ├── course.service.ts
+// │   ├── course.entity.ts
+// │   ├── dto/
+// │   │   └── create-course.dto.ts
+// │   ├── interfaces/
+// │   │   └── course.interface.ts
+// ├── detail/
+// │   ├── detail.module.ts
+// │   ├── detail.controller.ts
+// │   ├── detail.service.ts
+// │   ├── detail.entity.ts
+// │   ├── dto/
+// │   │   └── create-detail.dto.ts
+// │   ├── interfaces/
+// │   │   └── detail.interface.ts
+
+// -------------------- student/student.entity.ts --------------------
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, ManyToMany, JoinTable } from 'typeorm';
+import { Detail } from '../../detail/detail.entity';
+import { Course } from '../../course/course.entity';
+
+@Entity()
+export class Student {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  name: string;
+
+  @Column()
+  email: string;
+
+  @OneToOne(() => Detail, (detail) => detail.student)
+  @JoinColumn()
+  detail: Detail;
+
+  @ManyToMany(() => Course, (course) => course.students)
+  @JoinTable()
+  courses: Course[];
+}
+
+// -------------------- detail/detail.entity.ts --------------------
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm';
+import { Student } from '../../student/student.entity';
+
+@Entity()
+export class Detail {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  bio: string;
+
+  @OneToOne(() => Student, (student) => student.detail)
+  student: Student;
+}
+
+// -------------------- course/course.entity.ts --------------------
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
+import { Student } from '../../student/student.entity';
+
+@Entity()
+export class Course {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  title: string;
+
+  @Column()
+  duration: string;
+
+  @ManyToMany(() => Student, (student) => student.courses)
+  students: Student[];
+}
+
+// -------------------- RELATIONSHIP SUMMARY --------------------
+// ✅ OneToOne: Student ↔ Detail
+//    - A student has one detail; a detail belongs to one student
+// ✅ ManyToMany: Student ⇄ Course
+//    - A student can enroll in many courses; a course can have many students
+
+// -------------------- NOTES --------------------
+// ⚙️ These entity files assume you are using TypeORM
+// ⚠️ Make sure to configure TypeORM in main.ts or separate ormconfig.ts file
+// Example:
+// TypeOrmModule.forRoot({
+//   type: 'sqlite',
+//   database: 'db.sqlite',
+//   entities: [Student, Detail, Course],
+//   synchronize: true,
+// })
+// ➕ Use TypeOrmModule.forFeature([Entity]) in each module to use repositories
